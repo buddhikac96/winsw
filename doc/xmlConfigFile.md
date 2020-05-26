@@ -362,3 +362,7 @@ This is useful when the main process is a console, which can respond to Ctrl+C c
 ```xml
 <stopparentprocessfirst>true</stopparentprocessfirst>
 ```
+
+## XML Schema Validation
+
+We are using XSD file to validate XML schema. XSD file has been embedded as a resource. XSD file includes all possible configurations with respective validations for configurations. When specifying a XML configuration file, user should follow the XSD schema file.
