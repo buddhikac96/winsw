@@ -1,0 +1,6 @@
+﻿---
+service:
+ id: myapp
+ name: "MyApp service(powered by WinSW)"
+ description: This service is a service created from a minimal configuration
+ executable: %BASE%\myExecutable.exe
