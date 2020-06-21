@@ -23,6 +23,10 @@ using winsw.Native;
 using winsw.Util;
 using WMI;
 using ServiceType = WMI.ServiceType;
+using CommandLine;
+using System.Reflection;
+using System.Linq;
+using winsw.CLI;
 
 namespace winsw
 {
@@ -32,9 +36,21 @@ namespace winsw
 
         public static int Main(string[] args)
         {
+            var types = LoadVerbs();
+
             try
             {
-                Run(args);
+                if(args.Length == 0)
+                {
+                    RunParsed(new EmptyArgs());
+                }
+                else
+                {
+                    Parser.Default.ParseArguments(args, types)
+                        .WithParsed(RunParsed)
+                        .WithNotParsed(HandleErrors);
+                }
+                
                 Log.Debug("Completed. Exit code is 0");
                 return 0;
             }
@@ -59,9 +75,27 @@ namespace winsw
             }
         }
 
-        public static void Run(string[] argsArray, ServiceDescriptor? descriptor = null)
+        private static Type[] LoadVerbs()
         {
-            bool inConsoleMode = argsArray.Length > 0;
+            return Assembly.GetExecutingAssembly().GetTypes()
+                .Where(t => t.GetCustomAttribute<VerbAttribute>() != null).ToArray();
+        }
+
+        private static void HandleErrors(IEnumerable<Error> errors)
+        {
+
+        }
+
+        public static void RunParsed(object obj)
+        {
+            Run(obj, null);
+        }
+
+        public static void Run(object obj, ServiceDescriptor? descriptor = null)
+        {
+            var cliOption = (CliOption)obj;
+
+            bool inConsoleMode = obj.GetType().Name != "EmptyArgs"; 
 
             // If descriptor is not specified, initialize the new one (and load configs from there)
             descriptor ??= new ServiceDescriptor();
@@ -79,40 +113,24 @@ namespace winsw
 
             Log.Debug("Starting WinSW in console mode");
 
-            if (argsArray.Length == 0)
-            {
-                PrintHelp();
-                return;
-            }
 
             // Get service info for the future use
             Win32Services svcs = new WmiRoot().GetCollection<Win32Services>();
             Win32Service? svc = svcs.Select(descriptor.Id);
 
-            var args = new List<string>(Array.AsReadOnly(argsArray));
-            if (args[0] == "/redirect")
+            if (!string.IsNullOrEmpty(cliOption.RedirectPath))
             {
-                var f = new FileStream(args[1], FileMode.Create);
-                var w = new StreamWriter(f) { AutoFlush = true };
-                Console.SetOut(w);
-                Console.SetError(w);
-
-                var handle = f.SafeFileHandle;
-                _ = Kernel32.SetStdHandle(-11, handle); // set stdout
-                _ = Kernel32.SetStdHandle(-12, handle); // set stder
-
-                args = args.GetRange(2, args.Count - 2);
+                redirect(cliOption.RedirectPath);
             }
 
             bool elevated;
-            if (args[0] == "/elevated")
+            if (cliOption.Elevate)
             {
                 elevated = true;
 
                 _ = ConsoleApis.FreeConsole();
                 _ = ConsoleApis.AttachConsole(ConsoleApis.ATTACH_PARENT_PROCESS);
 
-                args = args.GetRange(1, args.Count - 1);
             }
             else if (Environment.OSVersion.Version.Major == 5)
             {
@@ -124,67 +142,55 @@ namespace winsw
                 elevated = IsProcessElevated();
             }
 
-            switch (args[0].ToLower())
+            switch (obj)
             {
-                case "install":
-                    Install();
+                case InstallOption installOption:
+                    Install(installOption);
                     return;
-
-                case "uninstall":
+                case UninstallOption _:
                     Uninstall();
                     return;
-
-                case "start":
+                case StartOption _:
                     Start();
                     return;
-
-                case "stop":
+                case StopOption _:
                     Stop();
                     return;
-
-                case "stopwait":
+                case StopWaitOption _:
                     StopWait();
                     return;
-
-                case "restart":
+                case RestartOption _:
                     Restart();
                     return;
-
-                case "restart!":
+                case DoRestartOption _:
                     RestartSelf();
                     return;
-
-                case "status":
+                case StatusOption _:
                     Status();
                     return;
-
-                case "test":
-                    Test();
+                case TestOption testOption:
+                    Test(testOption);
                     return;
-
-                case "testwait":
-                    TestWait();
+                case TestWaitOption testwaitOption:
+                    TestWait(testwaitOption);
                     return;
-
-                case "help":
-                case "--help":
-                case "-h":
-                case "-?":
-                case "/?":
-                    PrintHelp();
-                    return;
-
-                case "version":
-                    PrintVersion();
-                    return;
-
-                default:
-                    Console.WriteLine("Unknown command: " + args[0]);
-                    PrintAvailableCommands();
-                    throw new Exception("Unknown command: " + args[0]);
             }
 
-            void Install()
+
+            void redirect(string redirectTarget)
+            {
+                var f = new FileStream(redirectTarget, FileMode.Create);
+                var w = new StreamWriter(f) { AutoFlush = true };
+                Console.SetOut(w);
+                Console.SetError(w);
+
+                var handle = f.SafeFileHandle;
+                _ = Kernel32.SetStdHandle(-11, handle); // set stdout
+                _ = Kernel32.SetStdHandle(-12, handle); // set stder
+            }
+
+
+            void Install(InstallOption opts)
             {
                 if (!elevated)
                 {
@@ -205,7 +211,7 @@ namespace winsw
                 string? username = null;
                 string? password = null;
                 bool allowServiceLogonRight = false;
-                if (args.Count > 1 && args[1] == "/p")
+                if (opts.profile)
                 {
                     Console.Write("Username: ");
                     username = Console.ReadLine();
@@ -466,7 +472,7 @@ namespace winsw
                 Console.WriteLine(svc is null ? "NonExistent" : svc.Started ? "Started" : "Stopped");
             }
 
-            void Test()
+            void Test(object obj)
             {
                 if (!elevated)
                 {
@@ -474,13 +480,15 @@ namespace winsw
                     return;
                 }
 
+                var arguments = Parser.Default.FormatCommandLine(obj).Split(' ');
+
                 WrapperService wsvc = new WrapperService(descriptor);
-                wsvc.RaiseOnStart(args.ToArray());
+                wsvc.RaiseOnStart(arguments);
                 Thread.Sleep(1000);
                 wsvc.RaiseOnStop();
             }
 
-            void TestWait()
+            void TestWait(object obj)
             {
                 if (!elevated)
                 {
@@ -488,8 +496,10 @@ namespace winsw
                     return;
                 }
 
+                var arguments = Parser.Default.FormatCommandLine(obj).Split(' ');
+
                 WrapperService wsvc = new WrapperService(descriptor);
-                wsvc.RaiseOnStart(args.ToArray());
+                wsvc.RaiseOnStart(arguments);
                 Console.WriteLine("Press any key to stop the service...");
                 _ = Console.Read();
                 wsvc.RaiseOnStop();
@@ -505,13 +515,6 @@ namespace winsw
                     UseShellExecute = true,
                     Verb = "runas",
                     FileName = current.MainModule.FileName,
-#if NETCOREAPP
-                    Arguments = "/elevated " + string.Join(' ', args),
-#elif !NET20
-                    Arguments = "/elevated " + string.Join(" ", args),
-#else
-                    Arguments = "/elevated " + string.Join(" ", args.ToArray()),
-#endif
                     WindowStyle = ProcessWindowStyle.Hidden,
                 };
 
