@@ -361,13 +361,14 @@ namespace winsw.Configuration
         {
             get
             {
-                if(YamlFailureActions is null)
+
+                if (YamlFailureActions is null)
                 {
-                    return new List<SC_ACTION>(0).ToArray();
+                    return new SC_ACTION[0];
                 }
 
-                var arr = new List<SC_ACTION>();
 
+                var arr = new List<SC_ACTION>();
                 foreach (var item in YamlFailureActions)
                 {
                     arr.Add(new SC_ACTION(item.Type, item.Delay));
