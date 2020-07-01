@@ -24,9 +24,9 @@ namespace winsw.Configuration
         public string ExecutablePath => Process.GetCurrentProcess().MainModule.FileName;
 
         // Installation
-        public bool AllowServiceAcountLogonRight => false;
-        public string? ServiceAccountPassword => null;
-        public string? ServiceAccountUser => null;
+        public bool AllowServiceAcountLogonRight => ServiceAccount.AllowServiceAcountLogonRight;
+        public string? ServiceAccountPassword => ServiceAccount.Password;
+        public string? ServiceAccountUser => ServiceAccount.User;
         public Native.SC_ACTION[] FailureActions => new Native.SC_ACTION[0];
         public TimeSpan ResetFailureAfter => TimeSpan.FromDays(1);
 
@@ -96,6 +96,31 @@ namespace winsw.Configuration
             public override string? ZipDateFormat => null;
         }
 
+        //ServiceAccount
+        public ServiceAccount ServiceAccount { get => new ServiceAccountDefaults(); }
+
+        public string? ServiceAccountDomain => ServiceAccount.Domain;
+        public string? ServiceAccountName => ServiceAccount.Name;
+
+        public bool HasServiceAccount()
+        {
+            return false;
+        }
+
+        public class ServiceAccountDefaults : ServiceAccount
+        {
+            public string? Name => null;
+
+            public string? Domain => null;
+
+            public string? User => null;
+
+            public string? Password => null;
+
+            public bool AllowServiceAcountLogonRight => false;
+        }
+       
+
         // Environment
         public List<Download> Downloads => new List<Download>(0);
         public Dictionary<string, string> EnvironmentVariables => new Dictionary<string, string>(0);
@@ -105,7 +130,6 @@ namespace winsw.Configuration
 
         // Extensions
         public XmlNode? ExtensionsConfiguration => null;
-
 
 
         public string BaseName
@@ -133,16 +157,7 @@ namespace winsw.Configuration
 
         public List<string> ExtensionIds => throw new NotImplementedException();
 
-        public string? ServiceAccountDomain => throw new NotImplementedException();
-
-        public string? ServiceAccountName => throw new NotImplementedException();
-
         public string? SecurityDescriptor => throw new NotImplementedException();
-
-        public bool HasServiceAccount()
-        {
-            throw new NotImplementedException();
-        }
 
     }
 }

@@ -39,7 +39,7 @@ namespace winsw.Configuration
         public string? _WorkingDirectory { get; set; }
 
         [YamlMember(Alias = "serviceaccount")]
-        public ServiceAccount? ServiceAccount { get; set; }
+        public ServiceAccount? _ServiceAccount { get; set; }
 
         [YamlMember(Alias = "log")]
         public YamlLog? _YAMLLog { get; set; }
@@ -463,20 +463,23 @@ namespace winsw.Configuration
 
 
         //Service Account
-        public string? ServiceAccountPassword => ServiceAccount != null ? ServiceAccount.Password : null;
+        public ServiceAccount ServiceAccount => _ServiceAccount is null ?
+            Defaults.ServiceAccount :
+            _ServiceAccount;
 
-        public string? ServiceAccountUser => ServiceAccount is null ?
-            null :
-            (ServiceAccount.Domain ?? ".") + "\\" + ServiceAccount.Name;
+        public string? ServiceAccountName => ServiceAccount.Name;
 
+        public string? ServiceAccountUser => (ServiceAccount.Domain ?? ".") + "\\" + ServiceAccount.Name;
 
-        public bool AllowServiceAcountLogonRight => ServiceAccount.AllowServiceAcountLogonRight is null ?
-            Defaults.AllowServiceAcountLogonRight :
-            (bool)ServiceAccount.AllowServiceAcountLogonRight;
+        public string? ServiceAccountDomain => ServiceAccount.Domain;
+
+        public string? ServiceAccountPassword => ServiceAccount.Password;
+
+        public bool AllowServiceAcountLogonRight => ServiceAccount.AllowServiceAcountLogonRight;
 
         public bool HasServiceAccount()
         {
-            return !(ServiceAccount is null);
+            return !(_ServiceAccount is null);
         }
 
 
@@ -494,10 +497,6 @@ namespace winsw.Configuration
         public string BaseName => Defaults.BaseName;
 
         public string BasePath => Defaults.BasePath;
-
-        public string? ServiceAccountDomain => ServiceAccount.Domain;
-
-        public string? ServiceAccountName => ServiceAccount.Name;
 
         public string? SecurityDescriptor => _SecurityDescriptor;
 
