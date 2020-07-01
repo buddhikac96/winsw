@@ -7,16 +7,17 @@ namespace winsw
 {
     public class ServiceDescriptorYaml
     {
-        public readonly YamlConfiguration configurations;
+        public YamlConfiguration configurations;
 
         public static DefaultWinSWSettings Defaults { get; } = new DefaultWinSWSettings();
+
+        readonly DirectoryInfo d = new DirectoryInfo(Path.GetDirectoryName(Defaults.ExecutablePath));
 
         public ServiceDescriptorYaml()
         {
             var baseName = Defaults.BaseName;
             var basePath = Defaults.BasePath;
 
-            DirectoryInfo d = new DirectoryInfo(Path.GetDirectoryName(Defaults.ExecutablePath));
             while (true)
             {
                 if (File.Exists(Path.Combine(d.FullName, baseName + ".yml")))
@@ -28,25 +29,42 @@ namespace winsw
                 d = d.Parent;
             }
 
-            using (var reader = new StreamReader(basePath + ".yml"))
-            {
-                var file = reader.ReadToEnd();
-                var deserializer = new DeserializerBuilder().Build();
+            Deserialize(basePath + ".yml");
+            SetEnvs();
+        }
 
-                configurations = deserializer.Deserialize<YamlConfiguration>(file);
-            }
+        //ServiceDescriptorYaml from Configuration File Path
+        public ServiceDescriptorYaml(string configFilePath)
+        {
+            Deserialize(configFilePath);
+            SetEnvs();
+        }
 
+        private void SetEnvs()
+        {
             Environment.SetEnvironmentVariable("BASE", d.FullName);
-
-            // ditto for ID
             Environment.SetEnvironmentVariable("SERVICE_ID", configurations.Id);
-
-            // New name
             Environment.SetEnvironmentVariable(WinSWSystem.ENVVAR_NAME_EXECUTABLE_PATH, Defaults.ExecutablePath);
-
-            // Also inject system environment variables
             Environment.SetEnvironmentVariable(WinSWSystem.ENVVAR_NAME_SERVICE_ID, configurations.Id);
+        }
 
+        //Deserialize YAML File
+        private void Deserialize(string ymlFilePath)
+        {
+            try
+            {
+                using (var reader = new StreamReader(ymlFilePath))
+                {
+                    var file = reader.ReadToEnd();
+                    var deserializer = new DeserializerBuilder().Build();
+
+                    configurations = deserializer.Deserialize<YamlConfiguration>(file);
+                }
+            }
+            catch (FileNotFoundException)
+            {
+                throw new FileNotFoundException(ymlFilePath + "is not exist");
+            }
         }
 
 
