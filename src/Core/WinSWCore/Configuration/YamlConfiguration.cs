@@ -92,7 +92,7 @@ namespace winsw.Configuration
         [YamlMember(Alias = "env")]
         public Dictionary<string, string>? _EnvironmentVariables { get; set; }
 
-        [YamlMember(Alias = "failureActions")]
+        [YamlMember(Alias = "onfailure")]
         public List<YamlFailureAction>? YamlFailureActions { get; set; }
 
         [YamlMember(Alias = "delayedAutoStart")]
@@ -262,14 +262,23 @@ namespace winsw.Configuration
 
         public class YamlFailureAction
         {
-            [YamlMember(Alias = "type")]
-            public SC_ACTION_TYPE type;
+            [YamlMember(Alias = "action")]
+            public string? action;
 
             [YamlMember(Alias = "delay")]
             public string? delay;
 
-            public SC_ACTION_TYPE Type => type;
-            public TimeSpan Delay => ParseTimeSpan(delay);
+            public SC_ACTION_TYPE Action => action switch
+            {
+                "restart" => SC_ACTION_TYPE.SC_ACTION_RESTART,
+                "none" => SC_ACTION_TYPE.SC_ACTION_NONE,
+                "reboot" => SC_ACTION_TYPE.SC_ACTION_REBOOT,
+                _ => throw new Exception("Invalid failure action: " + action)
+            };
+
+            public TimeSpan Delay => delay is null ?
+                TimeSpan.Zero :
+                ParseTimeSpan(delay);
         }
 
 
@@ -366,7 +375,7 @@ namespace winsw.Configuration
 
                 foreach (var item in YamlFailureActions)
                 {
-                    arr.Add(new SC_ACTION(item.Type, item.Delay));
+                    arr.Add(new SC_ACTION(item.Action, item.Delay));
                 }
 
                 return arr.ToArray();
