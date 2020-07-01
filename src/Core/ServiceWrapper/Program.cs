@@ -107,9 +107,8 @@ namespace winsw
                 case ".yaml":
                 case ".yml":
                     Console.WriteLine("WinSW Starting with YAML");
-                    descriptor = new ServiceDescriptorYaml().configurations;
+                    descriptor = new ServiceDescriptorYaml(cliOption.ConfigFile).configurations;
                     break;
-                
                 case ".xml":
                     Console.WriteLine("WinSW Starting with XML");
                     descriptor = new ServiceDescriptor();
