@@ -63,10 +63,10 @@ namespace winsw.Configuration
         public bool? _StopParentProcessFirst { get; set; }
 
         [YamlMember(Alias = "resetFailureAfter")]
-        public TimeSpan? _ResetFailureAfter { get; set; }
+        public string? _ResetFailureAfter { get; set; }
 
         [YamlMember(Alias = "stopTimeout")]
-        public TimeSpan? _StopTimeout { get; set; }
+        public string? _StopTimeout { get; set; }
 
         [YamlMember(Alias = "startMode")]
         public StartMode? _StartMode { get; set; }
@@ -75,10 +75,10 @@ namespace winsw.Configuration
         public string[]? _ServiceDependencies { get; set; }
 
         [YamlMember(Alias = "waitHint")]
-        public TimeSpan? _WaitHint { get; set; }
+        public string? _WaitHint { get; set; }
 
         [YamlMember(Alias = "sleepTime")]
-        public TimeSpan? _SleepTime { get; set; }
+        public string? _SleepTime { get; set; }
 
         [YamlMember(Alias = "interactive")]
         public bool? _Interactive { get; set; }
@@ -263,13 +263,13 @@ namespace winsw.Configuration
         public class YamlFailureAction
         {
             [YamlMember(Alias = "type")]
-            private SC_ACTION_TYPE type;
+            public SC_ACTION_TYPE type;
 
             [YamlMember(Alias = "delay")]
-            private TimeSpan delay;
+            public string? delay;
 
-            public SC_ACTION_TYPE Type { get => type; set => type = value; }
-            public TimeSpan Delay { get => delay; set => delay = value; }
+            public SC_ACTION_TYPE Type => type;
+            public TimeSpan Delay => ParseTimeSpan(delay);
         }
 
 
@@ -375,7 +375,7 @@ namespace winsw.Configuration
 
         public TimeSpan ResetFailureAfter => _ResetFailureAfter is null ?
             Defaults.ResetFailureAfter :
-            (TimeSpan)_ResetFailureAfter;
+            ParseTimeSpan(_ResetFailureAfter);
 
         public string WorkingDirectory => _WorkingDirectory is null ?
             Defaults.WorkingDirectory :
@@ -383,15 +383,21 @@ namespace winsw.Configuration
 
         public ProcessPriorityClass Priority => _Priority is null ? Defaults.Priority : (ProcessPriorityClass)_Priority;
 
-        public TimeSpan StopTimeout => _StopTimeout is null ? Defaults.StopTimeout : (TimeSpan)_StopTimeout;
+        public TimeSpan StopTimeout => _StopTimeout is null ?
+            Defaults.StopTimeout :
+            ParseTimeSpan(_StopTimeout);
 
         public string[] ServiceDependencies => _ServiceDependencies is null ?
             Defaults.ServiceDependencies :
             _ServiceDependencies;
 
-        public TimeSpan WaitHint => _WaitHint is null ? Defaults.WaitHint : (TimeSpan)_WaitHint;
+        public TimeSpan WaitHint => _WaitHint is null ?
+            Defaults.WaitHint :
+            ParseTimeSpan(_WaitHint);
 
-        public TimeSpan SleepTime => _SleepTime is null ? Defaults.SleepTime : (TimeSpan)_SleepTime;
+        public TimeSpan SleepTime => _SleepTime is null ? 
+            Defaults.SleepTime : 
+            ParseTimeSpan(_SleepTime);
 
         public bool Interactive => _Interactive is null ? Defaults.Interactive : (bool)_Interactive;
 
@@ -414,7 +420,38 @@ namespace winsw.Configuration
                 return dictionary;
             }
         }
-        
+
+
+        //Parsing Time Span
+        public static TimeSpan ParseTimeSpan(string v)
+        {
+            v = v.Trim();
+            foreach (var s in Suffix)
+            {
+                if (v.EndsWith(s.Key))
+                {
+                    return TimeSpan.FromMilliseconds(int.Parse(v.Substring(0, v.Length - s.Key.Length).Trim()) * s.Value);
+                }
+            }
+
+            return TimeSpan.FromMilliseconds(int.Parse(v));
+        }
+
+        private static readonly Dictionary<string, long> Suffix = new Dictionary<string, long>
+        {
+            { "ms",     1 },
+            { "sec",    1000L },
+            { "secs",   1000L },
+            { "min",    1000L * 60L },
+            { "mins",   1000L * 60L },
+            { "hr",     1000L * 60L * 60L },
+            { "hrs",    1000L * 60L * 60L },
+            { "hour",   1000L * 60L * 60L },
+            { "hours",  1000L * 60L * 60L },
+            { "day",    1000L * 60L * 60L * 24L },
+            { "days",   1000L * 60L * 60L * 24L }
+        };
+
 
         //Service Account
         public string? ServiceAccountPassword => ServiceAccount != null ? ServiceAccount.Password : null;
