@@ -79,6 +79,9 @@ namespace winsw
         {
             LoadDom(ConfigFilePath);
             LoadEnvs();
+
+            BaseName = Path.GetFileNameWithoutExtension(ExecutablePath);
+            BasePath = Path.Combine(d.FullName, BaseName);
         }
 
         /// <summary>

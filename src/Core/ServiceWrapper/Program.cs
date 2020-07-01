@@ -111,7 +111,7 @@ namespace winsw
                     break;
                 case ".xml":
                     Console.WriteLine("WinSW Starting with XML");
-                    descriptor = new ServiceDescriptor();
+                    descriptor = new ServiceDescriptor(cliOption.ConfigFile);
                     break;
                 default:
                     Console.WriteLine("Config File not specified. WinSW Starting with XML");
