@@ -19,7 +19,7 @@ namespace winsw
         // ReSharper disable once InconsistentNaming
         protected readonly XmlDocument dom = new XmlDocument();
 
-        private readonly Dictionary<string, string> environmentVariables;
+        private Dictionary<string, string> environmentVariables;
 
         public static DefaultWinSWSettings Defaults { get; } = new DefaultWinSWSettings();
 
@@ -40,17 +40,18 @@ namespace winsw
         // Currently there is no opportunity to alter the executable path
         public virtual string ExecutablePath => Defaults.ExecutablePath;
 
+        private readonly DirectoryInfo d = new DirectoryInfo(Path.GetDirectoryName(Defaults.ExecutablePath));
+
         public ServiceDescriptor()
         {
             // find co-located configuration xml. We search up to the ancestor directories to simplify debugging,
             // as well as trimming off ".vshost" suffix (which is used during debugging)
             // Get the first parent to go into the recursive loop
-            string p = ExecutablePath;
-            string baseName = Path.GetFileNameWithoutExtension(p);
+            string baseName = Path.GetFileNameWithoutExtension(ExecutablePath);
+
             if (baseName.EndsWith(".vshost"))
                 baseName = baseName.Substring(0, baseName.Length - 7);
 
-            DirectoryInfo d = new DirectoryInfo(Path.GetDirectoryName(p));
             while (true)
             {
                 if (File.Exists(Path.Combine(d.FullName, baseName + ".xml")))
@@ -65,15 +66,47 @@ namespace winsw
             BaseName = baseName;
             BasePath = Path.Combine(d.FullName, BaseName);
 
+            LoadDom(BasePath + ".xml");
+
+            LoadEnvs();
+        }
+
+        /// <summary>
+        /// Load descriptor from file path specified from command line
+        /// </summary>
+        /// <param name="ConfigFilePath"></param>
+        public ServiceDescriptor(string ConfigFilePath)
+        {
+            LoadDom(ConfigFilePath);
+            LoadEnvs();
+        }
+
+        /// <summary>
+        /// Loads descriptor from existing DOM
+        /// </summary>
+#pragma warning disable CS8618 // Non-nullable field is uninitialized. Consider declaring as nullable.
+        public ServiceDescriptor(XmlDocument dom)
+#pragma warning restore CS8618 // Non-nullable field is uninitialized. Consider declaring as nullable.
+        {
+            this.dom = dom;
+
+            this.environmentVariables = this.LoadEnvironmentVariables();
+        }
+
+        private void LoadDom(string xmlFilePath)
+        {
             try
             {
-                dom.Load(BasePath + ".xml");
+                dom.Load(xmlFilePath);
             }
             catch (XmlException e)
             {
                 throw new InvalidDataException(e.Message, e);
             }
+        }
 
+        private void LoadEnvs()
+        {
             // register the base directory as environment variable so that future expansions can refer to this.
             Environment.SetEnvironmentVariable("BASE", d.FullName);
 
@@ -85,18 +118,6 @@ namespace winsw
 
             // Also inject system environment variables
             Environment.SetEnvironmentVariable(WinSWSystem.ENVVAR_NAME_SERVICE_ID, Id);
-
-            this.environmentVariables = this.LoadEnvironmentVariables();
-        }
-
-        /// <summary>
-        /// Loads descriptor from existing DOM
-        /// </summary>
-#pragma warning disable CS8618 // Non-nullable field is uninitialized. Consider declaring as nullable.
-        public ServiceDescriptor(XmlDocument dom)
-#pragma warning restore CS8618 // Non-nullable field is uninitialized. Consider declaring as nullable.
-        {
-            this.dom = dom;
 
             this.environmentVariables = this.LoadEnvironmentVariables();
         }
