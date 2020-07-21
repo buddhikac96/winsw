@@ -315,15 +315,29 @@ namespace WinSW.Configuration
 
         public class YamlFailureAction
         {
-            [YamlMember(Alias = "type")]
-            private SC_ACTION_TYPE type;
+            [YamlMember(Alias = "action")]
+            private string? FailureAction { get; set; }
 
             [YamlMember(Alias = "delay")]
-            private TimeSpan delay;
+            private TimeSpan FailureActionDelay { get; set; }
 
-            public SC_ACTION_TYPE Type { get => this.type; set => this.type = value; }
+            public SC_ACTION_TYPE Type
+            {
+                get
+                {
+                    SC_ACTION_TYPE actionType = this.FailureAction switch
+                    {
+                        "restart" => SC_ACTION_TYPE.SC_ACTION_RESTART,
+                        "none" => SC_ACTION_TYPE.SC_ACTION_NONE,
+                        "reboot" => SC_ACTION_TYPE.SC_ACTION_REBOOT,
+                        _ => throw new Exception("Invalid failure action: " + this.FailureAction)
+                    };
 
-            public TimeSpan Delay { get => this.delay; set => this.delay = value; }
+                    return actionType;
+                }
+            }
+
+            public TimeSpan Delay => this.FailureActionDelay;
         }
 
         private string? GetArguments(string? args, ArgType type)
