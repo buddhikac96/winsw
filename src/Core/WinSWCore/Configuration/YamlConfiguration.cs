@@ -100,6 +100,9 @@ namespace WinSW.Configuration
         [YamlMember(Alias = "securityDescriptor")]
         public string? SecurityDescriptorYaml { get; set; }
 
+        [YamlMember(Alias = "extensions")]
+        public List<string>? YamlExtensionIds { get; set; }
+
         public class YamlLog : Log
         {
             private readonly YamlConfiguration configs;
@@ -316,10 +319,10 @@ namespace WinSW.Configuration
         public class YamlFailureAction
         {
             [YamlMember(Alias = "action")]
-            private string? FailureAction { get; set; }
+            public string? FailureAction { get; set; }
 
             [YamlMember(Alias = "delay")]
-            private TimeSpan FailureActionDelay { get; set; }
+            public TimeSpan FailureActionDelay { get; set; }
 
             public SC_ACTION_TYPE Type
             {
@@ -510,19 +513,15 @@ namespace WinSW.Configuration
 
         public string LogMode => this.Log.Mode is null ? this.Defaults.LogMode : this.Log.Mode;
 
-        // TODO
+        // TODO - Extensions
         XmlNode? IWinSWConfiguration.ExtensionsConfiguration => throw new NotImplementedException();
 
-        public List<string> ExtensionIds => throw new NotImplementedException();
+        public List<string> ExtensionIds => this.YamlExtensionIds ?? this.Defaults.ExtensionIds;
 
-        public string BaseName => throw new NotImplementedException();
+        public string BaseName => this.Defaults.BaseName;
 
-        public string BasePath => throw new NotImplementedException();
+        public string BasePath => this.Defaults.BasePath;
 
-        public string? ServiceAccountDomain => throw new NotImplementedException();
-
-        public string? ServiceAccountName => throw new NotImplementedException();
-
-        public string? SecurityDescriptor => throw new NotImplementedException();
+        public string? SecurityDescriptor => this.SecurityDescriptorYaml ?? this.Defaults.SecurityDescriptor;
     }
 }
