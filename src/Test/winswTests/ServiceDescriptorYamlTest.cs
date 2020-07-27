@@ -14,7 +14,7 @@ name: This is a test
 executable: 'C:\Program Files\Java\jdk1.8.0_241\bin\java.exe'
 description: This is test winsw";
 
-        private readonly DefaultWinSWSettings Defaults = new DefaultWinSWSettings();
+        //private readonly DefaultWinSWSettings Defaults = new DefaultWinSWSettings();
 
         [Test]
         public void Parse_must_implemented_value_test()

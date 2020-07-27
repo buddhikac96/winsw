@@ -41,7 +41,7 @@ namespace WinSW
             using (var reader = new StreamReader(basepath + ".yml"))
             {
                 var file = reader.ReadToEnd();
-                var deserializer = new DeserializerBuilder().Build();
+                var deserializer = new DeserializerBuilder().IgnoreUnmatchedProperties().Build();
 
                 this.Configurations = deserializer.Deserialize<YamlConfiguration>(file);
             }
@@ -70,7 +70,7 @@ namespace WinSW
 
         public static ServiceDescriptorYaml FromYaml(string yaml)
         {
-            var deserializer = new DeserializerBuilder().Build();
+            var deserializer = new DeserializerBuilder().IgnoreUnmatchedProperties().Build();
             var configs = deserializer.Deserialize<YamlConfiguration>(yaml);
             return new ServiceDescriptorYaml(configs);
         }

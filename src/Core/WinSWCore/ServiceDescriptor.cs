@@ -729,5 +729,8 @@ namespace WinSW
 
             return environment;
         }
+
+        // TODO: Delete this
+        public object Plugin => throw new NotImplementedException();
     }
 }

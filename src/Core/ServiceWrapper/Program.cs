@@ -21,6 +21,7 @@ using log4net.Layout;
 using WinSW.Configuration;
 using WinSW.Logging;
 using WinSW.Native;
+using WinSW.Util;
 using WMI;
 using ServiceType = WMI.ServiceType;
 
@@ -64,7 +65,7 @@ namespace WinSW
             bool inConsoleMode = argsArray.Length > 0;
 
             // If descriptor is not specified, initialize the new one (and load configs from there)
-            descriptor ??= new ServiceDescriptor();
+            descriptor ??= new ServiceDescriptorYaml().Configurations;
 
             // Configure the wrapper-internal logging.
             // STDOUT and STDERR of the child process will be handled independently.

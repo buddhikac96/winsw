@@ -161,5 +161,7 @@ namespace WinSW.Configuration
         public List<string> ExtensionIds => new List<string>(0);
 
         public string? SecurityDescriptor => null;
+
+        public object Plugin => throw new NotImplementedException();
     }
 }

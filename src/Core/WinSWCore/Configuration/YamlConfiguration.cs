@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.Xml;
@@ -530,7 +529,7 @@ namespace WinSW.Configuration
         public string LogMode => this.Log.Mode is null ? this.Defaults.LogMode : this.Log.Mode;
 
         // TODO - Extensions
-        XmlNode? IWinSWConfiguration.ExtensionsConfiguration => throw new NotImplementedException();
+        public XmlNode? ExtensionsConfiguration => throw new NotImplementedException();
 
         public List<string> ExtensionIds => this.YamlExtensionIds ?? this.Defaults.ExtensionIds;
 
@@ -539,5 +538,10 @@ namespace WinSW.Configuration
         public string BasePath => this.Defaults.BasePath;
 
         public string? SecurityDescriptor => this.SecurityDescriptorYaml ?? this.Defaults.SecurityDescriptor;
+
+        [YamlMember(Alias = "plugins")]
+        public object? YamlExtension { get; set; }
+
+        public object Plugin => this.YamlExtension is null ? new object() : this.YamlExtension;
     }
 }
