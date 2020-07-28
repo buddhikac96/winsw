@@ -1,116 +1,93 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-#if !NET20
-using System.Linq;
-#endif
 
 namespace WinSW.Util
 {
     public class YamlQuery
     {
-        private readonly object yamlDic;
-        private string? key;
+        private readonly object yamlObject;
         private object? current;
+        private string? key;
 
-        public YamlQuery(object yamlDic)
+        public YamlQuery(object yaml)
         {
-            this.yamlDic = yamlDic;
+            this.yamlObject = yaml;
         }
 
         public YamlQuery On(string key)
         {
             this.key = key;
-            this.current = this.Query<object>(this.current ?? this.yamlDic, this.key, null);
+            this.current = this.Query(this.yamlObject, key);
             return this;
         }
 
-        public YamlQuery Get(string prop)
+        public YamlQuery Get(string key)
         {
             if (this.current == null)
             {
-                throw new InvalidOperationException();
+                throw new InvalidDataException("The key <" + key + "> is not exist");
             }
 
-            this.current = this.Query<object>(this.current, null, prop, this.key);
+            this.key = key;
+            this.current = this.Query(this.current, key);
             return this;
-        }
-
-        private void Reset()
-        {
-            this.current = null;
-            this.key = null;
-        }
-
-        private string LeafValue()
-        {
-            if (this.current == null)
-            {
-                throw new InvalidOperationException();
-            }
-
-            var result = this.current as List<object>;
-
-            if (result == null)
-            {
-                throw new InvalidOperationException();
-            }
-
-            if (result.Count == 1)
-            {
-                var output = result[0] as string;
-                return output == null ? string.Empty : output;
-            }
-            else
-            {
-                throw new InvalidOperationException();
-            }
-        }
-
-        public bool ToBoolean()
-        {
-            try
-            {
-                return this.GetBoolean();
-            }
-            finally
-            {
-                this.Reset();
-            }
         }
 
         public new string ToString()
         {
-            try
+            if (this.current == null)
             {
-                return this.GetString();
+                throw new InvalidDataException("The key <" + this.key + "> is not exist");
             }
-            finally
+
+            var result = this.current as string;
+
+            if (result == null)
             {
-                this.Reset();
+                throw new InvalidDataException(this.key + " can't converto to a string");
             }
+
+            return result;
         }
 
         public List<T> ToList<T>()
         {
-            try
+            if (this.current == null)
             {
-                return this.GetList<T>();
+                throw new InvalidDataException("The key <" + this.key + "> is not exist");
             }
-            finally
+
+            var list = this.current as List<object>;
+
+            if (list == null)
             {
-                this.Reset();
+                throw new InvalidDataException(this.key + " can't converto to List<" + typeof(T) + ">");
             }
+
+            var result = new List<T>();
+            foreach (var item in list)
+            {
+                result.Add((T)item);
+            }
+
+            return result;
         }
 
-        private string GetString()
+        public bool ToBoolean()
         {
-            return this.LeafValue();
-        }
+            if (this.current == null)
+            {
+                throw new InvalidDataException("The key <" + this.key + "> is not exist");
+            }
 
-        private bool GetBoolean()
-        {
-            var value = this.LeafValue().ToLower();
+            var value = this.current as string;
+
+            if (value == null)
+            {
+                throw new InvalidDataException(this.key + " can't convert into bool");
+            }
+
             if (value == "true" || value == "yes" || value == "on")
             {
                 return true;
@@ -125,93 +102,53 @@ namespace WinSW.Util
             }
         }
 
-        private List<T> GetList<T>()
+        public YamlQuery At(int index)
         {
             if (this.current == null)
             {
-                throw new InvalidOperationException();
+                throw new InvalidDataException("The key <" + this.key + "> is not exist");
             }
-#if NET20
+
             var list = this.current as List<object>;
 
-            if (list is null)
+            if (list == null)
             {
-                this.Reset();
-                return new List<T>(0);
+                throw new InvalidDataException("Can't execute At(index) on " + this.key);
             }
-            else
-            {
-                var result = new List<T>();
-                foreach (var item in list)
-                {
-                    result.Add((T)item);
-                }
 
-                return result;
+            try
+            {
+                var result = list[index];
+                this.current = result;
             }
-#else
-            return (this.current as List<object>).Cast<T>().ToList();
-#endif
+            catch (IndexOutOfRangeException)
+            {
+                throw new InvalidDataException("Index " + index + " not in range");
+            }
+
+            return this;
         }
 
-        private IEnumerable<T> Query<T>(object dictionary, string? key, string? prop, string? fromKey = null)
+        private object? Query(object dic, string key)
         {
-            var result = new List<T>();
-            if (dictionary == null)
+            if (dic == null)
             {
-                return result;
+                throw new InvalidDataException(key + " is not found");
             }
 
-            var dic = dictionary as IDictionary<object, object>;
-            if (dic != null)
+            var dict = dic as IDictionary<object, object>;
+            if (dict != null)
             {
-#if NET20
-                IDictionary<object, object> d = new Dictionary<object, object>();
-                foreach (KeyValuePair<object, object> kvp in dic)
+                foreach (KeyValuePair<object, object> kvp in dict)
                 {
-                    d.Add(kvp);
-                }
-#else
-                var d = dic.Cast<KeyValuePair<object, object>>();
-#endif
-                foreach (var dd in d)
-                {
-                    if (dd.Key as string == key)
+                    if (kvp.Key as string == key)
                     {
-                        if (prop == null)
-                        {
-                            result.Add((T)dd.Value);
-                        }
-                        else
-                        {
-                            result.AddRange(this.Query<T>(dd.Value, key, prop, dd.Key as string));
-                        }
-                    }
-                    else if (fromKey == key && dd.Key as string == prop)
-                    {
-                        result.Add((T)dd.Value);
-                    }
-                    else
-                    {
-                        result.AddRange(this.Query<T>(dd.Value, key, prop, dd.Key as string));
+                        return kvp.Value;
                     }
                 }
-
-                return result;
             }
 
-            var t = dictionary as IEnumerable<object>;
-            if (t != null)
-            {
-                foreach (var tt in t)
-                {
-                    result.AddRange(this.Query<T>(tt, key, prop, key));
-                }
-
-                return result;
-            }
-
-            return result;
+            return null;
         }
     }
 }
