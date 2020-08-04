@@ -27,7 +27,8 @@ namespace WinSW.Plugins.SharedDirectoryMapper
             this._entries.Add(config);
         }
 
-        public override void Configure(IWinSWConfiguration descriptor, XmlNode node)
+        // PLUGIN : Get generic key value pair instead XmlNode
+        /*public override void Configure(IWinSWConfiguration descriptor, XmlNode node)
         {
             XmlNodeList? mapNodes = XmlHelper.SingleNode(node, "mapping", false)!.SelectNodes("map");
             if (mapNodes != null)
@@ -37,6 +38,28 @@ namespace WinSW.Plugins.SharedDirectoryMapper
                     if (mapNodes[i] is XmlElement mapElement)
                     {
                         var config = SharedDirectoryMapperConfig.FromXml(mapElement);
+                        this._entries.Add(config);
+                    }
+                }
+            }
+        }*/
+
+        public override void Configure(IWinSWConfiguration descriptor, IDictionary<string, object> configs)
+        {
+            var maps = configs["mapping"] as List<object>;
+
+            if(maps != null)
+            {
+                foreach (KeyValuePair<string, object> kvp in maps)
+                {
+                    var map = kvp.Value as Dictionary<string, string>;
+                    if (map != null)
+                    {
+                        var enable = bool.Parse(map["enabled"]);
+                        var label = map["label"];
+                        var uncpath = map["uncpath"];
+
+                        var config = new SharedDirectoryMapperConfig(enable, label, uncpath);
                         this._entries.Add(config);
                     }
                 }

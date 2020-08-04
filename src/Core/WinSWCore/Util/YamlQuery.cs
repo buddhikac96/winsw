@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using YamlDotNet.Serialization;
 
 namespace WinSW.Util
 {
@@ -150,5 +151,16 @@ namespace WinSW.Util
 
             return null;
         }
+    }
+
+    public class ExtensionConfigurations
+    {
+        public string Id { get; set; }
+
+        public bool Enabled { get; set; }
+
+        public string ClassName { get; set; }
+
+        public IDictionary<object, object> Settings { get; set; }
     }
 }

@@ -1,4 +1,5 @@
-﻿using System.Xml;
+﻿using System.Runtime.InteropServices;
+using System.Xml;
 using WinSW.Util;
 
 namespace WinSW.Extensions
@@ -33,11 +34,21 @@ namespace WinSW.Extensions
             this.ClassName = className;
         }
 
+        // PLUGIN : Get Type contains enabled, classname and id, instead XmlElement
         public static WinSWExtensionDescriptor FromXml(XmlElement node)
         {
             bool enabled = XmlHelper.SingleAttribute(node, "enabled", true);
             string className = XmlHelper.SingleAttribute<string>(node, "className");
             string id = XmlHelper.SingleAttribute<string>(node, "id");
+            return new WinSWExtensionDescriptor(id, className, enabled);
+        }
+
+        public static WinSWExtensionDescriptor Build(ExtensionConfigurations config)
+        {
+            var id = config.Id;
+            var enabled = config.Enabled;
+            var className = config.ClassName;
+
             return new WinSWExtensionDescriptor(id, className, enabled);
         }
     }

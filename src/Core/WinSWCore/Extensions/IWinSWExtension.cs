@@ -1,4 +1,5 @@
-﻿using System.Xml;
+﻿using System.Collections.Generic;
+using System.Xml;
 using WinSW.Configuration;
 
 namespace WinSW.Extensions
@@ -28,7 +29,9 @@ namespace WinSW.Extensions
         /// </summary>
         /// <param name="descriptor">Service descriptor</param>
         /// <param name="node">Configuration node</param>
-        void Configure(IWinSWConfiguration descriptor, XmlNode node);
+
+        // PLUGIN : Get abstract dictioanry instead XmlNode
+        void Configure(IWinSWConfiguration descriptor, IDictionary<object, object> configs);
 
         /// <summary>
         /// Start handler. Called during startup of the service before the child process.

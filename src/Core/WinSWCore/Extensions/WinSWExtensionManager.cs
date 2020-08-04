@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Xml;
 using log4net;
 using WinSW.Configuration;
+using WinSW.Util;
 
 namespace WinSW.Extensions
 {
@@ -12,12 +13,15 @@ namespace WinSW.Extensions
 
         public IWinSWConfiguration ServiceDescriptor { get; private set; }
 
+        public ExtensionConfigurationProvider ConfigProvider { get; private set; }
+
         private static readonly ILog Log = LogManager.GetLogger(typeof(WinSWExtensionManager));
 
         public WinSWExtensionManager(IWinSWConfiguration serviceDescriptor)
         {
             this.ServiceDescriptor = serviceDescriptor;
             this.Extensions = new Dictionary<string, IWinSWExtension>();
+            this.ConfigProvider = new ExtensionConfigurationProvider();
         }
 
         /// <summary>
@@ -120,13 +124,15 @@ namespace WinSW.Extensions
         /// </summary>
         /// <param name="id">Extension ID</param>
         /// <exception cref="Exception">Loading failure</exception>
-        private void LoadExtension(string id)
+        /*private void LoadExtension(string id)
         {
             if (this.Extensions.ContainsKey(id))
             {
                 throw new ExtensionException(id, "Extension has been already loaded");
             }
 
+            // Get a keyvalue pair here
+            // PLUGIN
             XmlNode? extensionsConfig = this.ServiceDescriptor.ExtensionsConfiguration;
             XmlElement? configNode = extensionsConfig is null ? null : extensionsConfig.SelectSingleNode("extension[@id='" + id + "'][1]") as XmlElement;
             if (configNode is null)
@@ -142,6 +148,55 @@ namespace WinSW.Extensions
                 try
                 {
                     extension.Configure(this.ServiceDescriptor, configNode);
+                }
+                catch (Exception ex)
+                { // Consider any unexpected exception as fatal
+                    Log.Fatal("Failed to configure the extension " + id, ex);
+                    throw ex;
+                }
+
+                this.Extensions.Add(id, extension);
+                Log.Info("Extension loaded: " + id);
+            }
+            else
+            {
+                Log.Warn("Extension is disabled: " + id);
+            }
+        }*/
+
+        private void LoadExtension(string id)
+        {
+            if (this.Extensions.ContainsKey(id))
+            {
+                throw new ExtensionException(id, "Extension has been already loaded");
+            }
+
+            var extensionsConfig = this.ConfigProvider.ExtensionConfigs;
+            ExtensionConfigurations? configNode = null;
+
+            // Ugly : Replace with LinQ in net40
+            foreach (var item in extensionsConfig)
+            {
+                if (item.Id.Equals(id))
+                {
+                    configNode = item;
+                    break;
+                }
+            }
+
+            if (configNode is null)
+            {
+                throw new ExtensionException(id, "Cannot get the configuration entry");
+            }
+
+            var descriptor = WinSWExtensionDescriptor.Build(configNode);
+            if (descriptor.Enabled)
+            {
+                IWinSWExtension extension = this.CreateExtensionInstance(descriptor.Id, descriptor.ClassName);
+                extension.Descriptor = descriptor;
+                try
+                {
+                    extension.Configure(this.ServiceDescriptor, configNode.Settings);
                 }
                 catch (Exception ex)
                 { // Consider any unexpected exception as fatal

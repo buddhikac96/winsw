@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.Diagnostics;
 using System.IO;
@@ -180,7 +181,8 @@ namespace WinSW.Plugins.RunawayProcessKiller
             return parameters.Environment;
         }
 
-        public override void Configure(IWinSWConfiguration descriptor, XmlNode node)
+        // PLUGIN : Get generic dictionary instead XmlNode
+        /*public override void Configure(IWinSWConfiguration descriptor, XmlNode node)
         {
             // We expect the upper logic to process any errors
             // TODO: a better parser API for types would be useful
@@ -191,6 +193,17 @@ namespace WinSW.Plugins.RunawayProcessKiller
             // TODO: Consider making it documented
             var checkWinSWEnvironmentVariable = XmlHelper.SingleElement(node, "checkWinSWEnvironmentVariable", true);
             this.CheckWinSWEnvironmentVariable = checkWinSWEnvironmentVariable is null ? true : bool.Parse(checkWinSWEnvironmentVariable);
+        }*/
+
+        public override void Configure(IWinSWConfiguration descriptor, IDictionary<object, object> configs)
+        {
+            this.Pidfile = (string)configs["pidfile"];
+            this.StopTimeout = TimeSpan.FromMilliseconds(int.Parse((string)configs["stopTimeout"]));
+            this.StopParentProcessFirst = bool.Parse((string)configs["stopParentFirst"]);
+            this.ServiceId = descriptor.Id;
+
+            var checkWinSWEnvironmentVariable = (string)configs["checkWinSWEnvironmentVariable"];
+            this.CheckWinSWEnvironmentVariable = checkWinSWEnvironmentVariable is null || bool.Parse(checkWinSWEnvironmentVariable);
         }
 
         /// <summary>
