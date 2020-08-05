@@ -1,6 +1,9 @@
 using NUnit.Framework;
+using System;
+using System.IO;
 using WinSW;
 using WinSW.Util;
+using YamlDotNet.Serialization;
 
 namespace winswTests
 {
@@ -84,6 +87,25 @@ namespace winswTests
             var value = data.On("configs").At(1).Get("settings").Get("mapping").At(0).Get("map").Get("label").ToString();
             
             Assert.AreEqual("N", value);
+        }
+
+        [Test]
+        public void RunAwayProcessKiller_extension_configs_test()
+        {
+            var config = @"settings:
+            pidfile: '%BASE%\pid.txt'
+            stopTimeOut: 5000
+            StopParentFirst: true";
+
+            object yamlObject;
+            using (var r = new StringReader(config))
+                yamlObject = new Deserializer().Deserialize(r);
+
+            var query = new ObjectQuery(yamlObject);
+
+            Assert.AreEqual(@"%BASE%\pid.txt", query.On("settings").Get("pidfile").ToString());
+            Assert.AreEqual(TimeSpan.FromMilliseconds(5000), TimeSpan.FromMilliseconds(int.Parse(query.On("settings").Get("stopTimeOut").ToString())));
+            Assert.AreEqual(true, query.On("settings").Get("StopParentFirst").ToBoolean());
         }
     }
 }

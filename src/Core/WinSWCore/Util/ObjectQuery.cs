@@ -65,7 +65,7 @@ namespace WinSW.Util
                 throw new InvalidDataException(this.key + " can't converto to List<" + typeof(T) + ">");
             }
 
-            var result = new List<T>();
+            var result = new List<T>(0);
             foreach (var item in list)
             {
                 result.Add((T)item);

@@ -1,9 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Xml;
 using log4net;
 using WinSW.Configuration;
-using WinSW.Util;
 
 namespace WinSW.Extensions
 {
@@ -21,7 +19,7 @@ namespace WinSW.Extensions
         {
             this.ServiceDescriptor = serviceDescriptor;
             this.Extensions = new Dictionary<string, IWinSWExtension>();
-            this.ConfigProvider = new ExtensionConfigurationProvider();
+            this.ConfigProvider = new ExtensionConfigurationProvider(this.ServiceDescriptor);
         }
 
         /// <summary>

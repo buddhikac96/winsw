@@ -178,20 +178,6 @@ namespace WinSW.Plugins.RunawayProcessKiller
             return parameters.Environment;
         }
 
-        // PLUGIN : Get generic dictionary instead XmlNode
-        /*public override void Configure(IWinSWConfiguration descriptor, XmlNode node)
-        {
-            // We expect the upper logic to process any errors
-            // TODO: a better parser API for types would be useful
-            this.Pidfile = XmlHelper.SingleElement(node, "pidfile", false)!;
-            this.StopTimeout = TimeSpan.FromMilliseconds(int.Parse(XmlHelper.SingleElement(node, "stopTimeout", false)!));
-            this.StopParentProcessFirst = bool.Parse(XmlHelper.SingleElement(node, "stopParentFirst", false)!);
-            this.ServiceId = descriptor.Id;
-            // TODO: Consider making it documented
-            var checkWinSWEnvironmentVariable = XmlHelper.SingleElement(node, "checkWinSWEnvironmentVariable", true);
-            this.CheckWinSWEnvironmentVariable = checkWinSWEnvironmentVariable is null ? true : bool.Parse(checkWinSWEnvironmentVariable);
-        }*/
-
         public override void Configure(IWinSWConfiguration descriptor, object settings)
         {
             var configQuery = new ObjectQuery(settings);
@@ -199,7 +185,7 @@ namespace WinSW.Plugins.RunawayProcessKiller
             this.Pidfile = configQuery.On("settings").Get("pidfile").ToString();
             this.StopTimeout = TimeSpan.FromMilliseconds(int.Parse(configQuery.On("settings").Get("stopTimeOut").ToString()));
             this.StopParentProcessFirst = configQuery.On("settings").Get("StopParentFirst").ToBoolean();
-            this.CheckWinSWEnvironmentVariable = configQuery.On("settings").Get("checkWinSWEnvironmentVariable").ToBoolean()
+            this.CheckWinSWEnvironmentVariable = configQuery.On("settings").Get("checkWinSWEnvironmentVariable").ToBoolean();
             this.ServiceId = descriptor.Id;
         }
 

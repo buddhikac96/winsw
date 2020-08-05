@@ -1,10 +1,8 @@
 ﻿using System.Collections.Generic;
-using System.Xml;
 using log4net;
 using WinSW.Configuration;
 using WinSW.Extensions;
 using WinSW.Util;
-
 
 namespace WinSW.Plugins.SharedDirectoryMapper
 {
@@ -27,42 +25,21 @@ namespace WinSW.Plugins.SharedDirectoryMapper
             this._entries.Add(config);
         }
 
-        // PLUGIN : Get generic key value pair instead XmlNode
-        /*public override void Configure(IWinSWConfiguration descriptor, XmlNode node)
+        public override void Configure(IWinSWConfiguration descriptor, object settings)
         {
-            XmlNodeList? mapNodes = XmlHelper.SingleNode(node, "mapping", false)!.SelectNodes("map");
-            if (mapNodes != null)
+            var configObject = new ObjectQuery(settings);
+
+            var maps = configObject.On("mapping").ToList<object>();
+
+            foreach (var map in maps)
             {
-                for (int i = 0; i < mapNodes.Count; i++)
-                {
-                    if (mapNodes[i] is XmlElement mapElement)
-                    {
-                        var config = SharedDirectoryMapperConfig.FromXml(mapElement);
-                        this._entries.Add(config);
-                    }
-                }
-            }
-        }*/
+                var mapObject = new ObjectQuery(map);
+                var enable = mapObject.On("enabled").ToBoolean();
+                var label = mapObject.On("label").ToString();
+                var uncpath = mapObject.On("uncpath").ToString();
 
-        public override void Configure(IWinSWConfiguration descriptor, IDictionary<string, object> configs)
-        {
-            var maps = configs["mapping"] as List<object>;
-
-            if(maps != null)
-            {
-                foreach (KeyValuePair<string, object> kvp in maps)
-                {
-                    var map = kvp.Value as Dictionary<string, string>;
-                    if (map != null)
-                    {
-                        var enable = bool.Parse(map["enabled"]);
-                        var label = map["label"];
-                        var uncpath = map["uncpath"];
-
-                        var config = new SharedDirectoryMapperConfig(enable, label, uncpath);
-                        this._entries.Add(config);
-                    }
-                }
+                var config = new SharedDirectoryMapperConfig(enable, label, uncpath);
+                this._entries.Add(config);
             }
         }
 

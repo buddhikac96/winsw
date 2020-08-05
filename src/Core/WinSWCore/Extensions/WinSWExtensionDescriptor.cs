@@ -1,5 +1,4 @@
-﻿using System.Runtime.InteropServices;
-using System.Xml;
+﻿using System.Xml;
 using WinSW.Util;
 
 namespace WinSW.Extensions

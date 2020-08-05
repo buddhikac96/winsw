@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Xml;
-using WinSW.Configuration;
+﻿using WinSW.Configuration;
 
 namespace WinSW.Extensions
 {
@@ -29,7 +27,6 @@ namespace WinSW.Extensions
         /// </summary>
         /// <param name="descriptor">Service descriptor</param>
         /// <param name="node">Configuration node</param>
-
         // PLUGIN : Get abstract dictioanry instead XmlNode
         void Configure(IWinSWConfiguration descriptor, object settings);
 
