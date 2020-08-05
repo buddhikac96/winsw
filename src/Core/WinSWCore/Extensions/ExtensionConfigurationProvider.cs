@@ -35,7 +35,9 @@ namespace WinSW.Extensions
 
             var extensions = this.serviceDescriptor.Plugin;
             var extensionsQuery = new ObjectQuery(extensions);
-            var extensionNodes = extensionsQuery.On("extensions").ToList<object>();
+
+            // TODO : Change "plugins" match with xml config
+            var extensionNodes = extensionsQuery.On("plugins").ToList<object>();
 
             foreach (var extension in extensionNodes)
             {
