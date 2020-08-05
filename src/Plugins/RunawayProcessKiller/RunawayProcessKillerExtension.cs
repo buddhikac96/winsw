@@ -1,10 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Collections.Specialized;
 using System.Diagnostics;
 using System.IO;
 using System.Text;
-using System.Xml;
 using log4net;
 using WinSW.Configuration;
 using WinSW.Extensions;
@@ -195,15 +192,15 @@ namespace WinSW.Plugins.RunawayProcessKiller
             this.CheckWinSWEnvironmentVariable = checkWinSWEnvironmentVariable is null ? true : bool.Parse(checkWinSWEnvironmentVariable);
         }*/
 
-        public override void Configure(IWinSWConfiguration descriptor, IDictionary<object, object> configs)
+        public override void Configure(IWinSWConfiguration descriptor, object settings)
         {
-            this.Pidfile = (string)configs["pidfile"];
-            this.StopTimeout = TimeSpan.FromMilliseconds(int.Parse((string)configs["stopTimeout"]));
-            this.StopParentProcessFirst = bool.Parse((string)configs["stopParentFirst"]);
-            this.ServiceId = descriptor.Id;
+            var configQuery = new ObjectQuery(settings);
 
-            var checkWinSWEnvironmentVariable = (string)configs["checkWinSWEnvironmentVariable"];
-            this.CheckWinSWEnvironmentVariable = checkWinSWEnvironmentVariable is null || bool.Parse(checkWinSWEnvironmentVariable);
+            this.Pidfile = configQuery.On("settings").Get("pidfile").ToString();
+            this.StopTimeout = TimeSpan.FromMilliseconds(int.Parse(configQuery.On("settings").Get("stopTimeOut").ToString()));
+            this.StopParentProcessFirst = configQuery.On("settings").Get("StopParentFirst").ToBoolean();
+            this.CheckWinSWEnvironmentVariable = configQuery.On("settings").Get("checkWinSWEnvironmentVariable").ToBoolean()
+            this.ServiceId = descriptor.Id;
         }
 
         /// <summary>

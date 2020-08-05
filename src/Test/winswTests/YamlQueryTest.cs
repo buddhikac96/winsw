@@ -42,7 +42,7 @@ namespace winswTests
         public void Get_string_element_test()
         {
             var configs = ServiceDescriptorYaml.FromYaml(YamlPluginConfig).Configurations.Plugin;
-            var data = new YamlQuery(configs);
+            var data = new ObjectQuery(configs);
 
             Assert.AreEqual("killOnStartup", data.On("RunawayProcessKiller").Get("id").ToString());
             Assert.AreEqual("mapNetworDirs", data.On("SharedDirectoryMapper").Get("id").ToString());
@@ -54,10 +54,10 @@ namespace winswTests
         public void Get_data_inside_complex_objects()
         {
             var configs = ServiceDescriptorYaml.FromYaml(YamlPluginConfig).Configurations.Plugin;
-            var data = new YamlQuery(configs);
+            var data = new ObjectQuery(configs);
 
             var killOnStartupConfig = data.On("configs").ToList<object>()[0];
-            var data1 = new YamlQuery(killOnStartupConfig);
+            var data1 = new ObjectQuery(killOnStartupConfig);
 
             var pidfile = data1.On("settings").Get("pidfile").ToString();
 
@@ -68,7 +68,7 @@ namespace winswTests
         public void Get_data_from_list()
         {
             var configs = ServiceDescriptorYaml.FromYaml(YamlPluginConfig).Configurations.Plugin;
-            var data = new YamlQuery(configs);
+            var data = new ObjectQuery(configs);
 
             var value = data.On("configs").At(0).Get("settings").Get("pidfile").ToString();
 
@@ -79,7 +79,7 @@ namespace winswTests
         public void Go_deep()
         {
             var configs = ServiceDescriptorYaml.FromYaml(YamlPluginConfig).Configurations.Plugin;
-            var data = new YamlQuery(configs);
+            var data = new ObjectQuery(configs);
 
             var value = data.On("configs").At(1).Get("settings").Get("mapping").At(0).Get("map").Get("label").ToString();
             

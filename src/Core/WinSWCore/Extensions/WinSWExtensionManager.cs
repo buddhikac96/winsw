@@ -171,25 +171,14 @@ namespace WinSW.Extensions
                 throw new ExtensionException(id, "Extension has been already loaded");
             }
 
-            var extensionsConfig = this.ConfigProvider.ExtensionConfigs;
-            ExtensionConfigurations? configNode = null;
-
-            // Ugly : Replace with LinQ in net40
-            foreach (var item in extensionsConfig)
-            {
-                if (item.Id.Equals(id))
-                {
-                    configNode = item;
-                    break;
-                }
-            }
+            var configNode = this.ConfigProvider.GetExtenstionConfiguration(id);
 
             if (configNode is null)
             {
                 throw new ExtensionException(id, "Cannot get the configuration entry");
             }
 
-            var descriptor = WinSWExtensionDescriptor.Build(configNode);
+            var descriptor = new WinSWExtensionDescriptor(configNode.ID, configNode.ClassName, configNode.Enabled);
             if (descriptor.Enabled)
             {
                 IWinSWExtension extension = this.CreateExtensionInstance(descriptor.Id, descriptor.ClassName);

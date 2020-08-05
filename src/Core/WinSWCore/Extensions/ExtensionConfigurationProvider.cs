@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using System.Collections.Generic;
 using WinSW.Configuration;
 using WinSW.Util;
 
@@ -8,16 +6,51 @@ namespace WinSW.Extensions
 {
     public class ExtensionConfigurationProvider
     {
-        public IDictionary<string, object> FromXML(IWinSWConfiguration configs)
+        private readonly IWinSWConfiguration serviceDescriptor;
+
+        private readonly List<WinSWExtensionConfiguration> extensionConfigList;
+
+        public ExtensionConfigurationProvider(IWinSWConfiguration serviceConfigs)
         {
-            // Method intentionally left empty.
+            this.serviceDescriptor = serviceConfigs;
+            this.extensionConfigList = this.CreateExtensionConfigList();
         }
 
-        public IDictionary<string, object> FromYaml(IWinSWConfiguration configs)
+        public WinSWExtensionConfiguration? GetExtenstionConfiguration(string id)
         {
-            // Method intentionally left empty.
+            foreach (var item in this.extensionConfigList)
+            {
+                if (item.ID.Equals(id))
+                {
+                    return item;
+                }
+            }
+
+            return null;
         }
 
-        public List<ExtensionConfigurations> ExtensionConfigs { get; set; }
+        private List<WinSWExtensionConfiguration> CreateExtensionConfigList()
+        {
+            var result = new List<WinSWExtensionConfiguration>(0);
+
+            var extensions = this.serviceDescriptor.Plugin;
+            var extensionsQuery = new ObjectQuery(extensions);
+            var extensionNodes = extensionsQuery.On("extensions").ToList<object>();
+
+            foreach (var extension in extensionNodes)
+            {
+                var query = new ObjectQuery(extension);
+
+                var id = query.On("id").ToString();
+                var enabled = query.On("enabled").ToBoolean();
+                var className = query.On("classname").ToString();
+                var settings = query.On("settings");
+
+                var extensionConfig = new WinSWExtensionConfiguration(id, enabled, className, settings);
+                result.Add(extensionConfig);
+            }
+
+            return result;
+        }
     }
 }

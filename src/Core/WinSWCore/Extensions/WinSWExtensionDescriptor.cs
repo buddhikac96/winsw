@@ -27,7 +27,7 @@ namespace WinSW.Extensions
         /// </summary>
         public string ClassName { get; private set; }
 
-        private WinSWExtensionDescriptor(string id, string className, bool enabled)
+        public WinSWExtensionDescriptor(string id, string className, bool enabled)
         {
             this.Id = id;
             this.Enabled = enabled;
@@ -40,15 +40,6 @@ namespace WinSW.Extensions
             bool enabled = XmlHelper.SingleAttribute(node, "enabled", true);
             string className = XmlHelper.SingleAttribute<string>(node, "className");
             string id = XmlHelper.SingleAttribute<string>(node, "id");
-            return new WinSWExtensionDescriptor(id, className, enabled);
-        }
-
-        public static WinSWExtensionDescriptor Build(ExtensionConfigurations config)
-        {
-            var id = config.Id;
-            var enabled = config.Enabled;
-            var className = config.ClassName;
-
             return new WinSWExtensionDescriptor(id, className, enabled);
         }
     }

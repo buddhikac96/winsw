@@ -1,29 +1,28 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using YamlDotNet.Serialization;
 
 namespace WinSW.Util
 {
-    public class YamlQuery
+    public class ObjectQuery
     {
-        private readonly object yamlObject;
+        private readonly object configObject;
         private object? current;
         private string? key;
 
-        public YamlQuery(object yaml)
+        public ObjectQuery(object config)
         {
-            this.yamlObject = yaml;
+            this.configObject = config;
         }
 
-        public YamlQuery On(string key)
+        public ObjectQuery On(string key)
         {
             this.key = key;
-            this.current = this.Query(this.yamlObject, key);
+            this.current = this.Query(this.configObject, key);
             return this;
         }
 
-        public YamlQuery Get(string key)
+        public ObjectQuery Get(string key)
         {
             if (this.current == null)
             {
@@ -103,7 +102,7 @@ namespace WinSW.Util
             }
         }
 
-        public YamlQuery At(int index)
+        public ObjectQuery At(int index)
         {
             if (this.current == null)
             {
@@ -151,16 +150,5 @@ namespace WinSW.Util
 
             return null;
         }
-    }
-
-    public class ExtensionConfigurations
-    {
-        public string Id { get; set; }
-
-        public bool Enabled { get; set; }
-
-        public string ClassName { get; set; }
-
-        public IDictionary<object, object> Settings { get; set; }
     }
 }

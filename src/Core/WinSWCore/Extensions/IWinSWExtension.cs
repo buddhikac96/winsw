@@ -31,7 +31,7 @@ namespace WinSW.Extensions
         /// <param name="node">Configuration node</param>
 
         // PLUGIN : Get abstract dictioanry instead XmlNode
-        void Configure(IWinSWConfiguration descriptor, IDictionary<object, object> configs);
+        void Configure(IWinSWConfiguration descriptor, object settings);
 
         /// <summary>
         /// Start handler. Called during startup of the service before the child process.
