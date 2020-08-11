@@ -135,6 +135,8 @@ namespace WinSW.Configuration
         // Extensions
         public XmlNode? ExtensionsConfiguration => null;
 
+        public object? YamlExtensionsConfiguration => null;
+
         public string BaseName
         {
             get

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.Diagnostics;
 using System.IO;
@@ -191,6 +192,28 @@ namespace WinSW.Plugins.RunawayProcessKiller
             // TODO: Consider making it documented
             var checkWinSWEnvironmentVariable = XmlHelper.SingleElement(node, "checkWinSWEnvironmentVariable", true);
             this.CheckWinSWEnvironmentVariable = checkWinSWEnvironmentVariable is null ? true : bool.Parse(checkWinSWEnvironmentVariable);
+        }
+
+        public override void Configure(IWinSWConfiguration descriptor, object yamlObject)
+        {
+            if (!(yamlObject is Dictionary<object, object> dict))
+            {
+                // TODO : throw ExtensionException
+                throw new InvalidDataException("Cann't configure");
+            }
+
+            this.Pidfile = (string)dict["pidfile"];
+            this.StopTimeout = TimeSpan.FromMilliseconds(int.Parse((string)dict["stopTimeOut"]));
+            this.StopParentProcessFirst = bool.Parse((string)dict["StopParentFirst"]);
+
+            try
+            {
+                this.CheckWinSWEnvironmentVariable = bool.Parse((string)dict["checkWinSWEnvironmentVariable"]);
+            }
+            catch
+            {
+                this.CheckWinSWEnvironmentVariable = true;
+            }
         }
 
         /// <summary>

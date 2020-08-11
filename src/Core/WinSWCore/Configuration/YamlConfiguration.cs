@@ -99,9 +99,6 @@ namespace WinSW.Configuration
         [YamlMember(Alias = "securityDescriptor")]
         public string? SecurityDescriptorYaml { get; set; }
 
-        [YamlMember(Alias = "extensions")]
-        public List<string>? YamlExtensionIds { get; set; }
-
         public class YamlEnv
         {
             [YamlMember(Alias = "name")]
@@ -642,9 +639,37 @@ namespace WinSW.Configuration
         public string LogMode => this.Log.Mode is null ? this.Defaults.LogMode : this.Log.Mode;
 
         // TODO - Extensions
-        XmlNode? IWinSWConfiguration.ExtensionsConfiguration => throw new NotImplementedException();
+        public XmlNode? ExtensionsConfiguration => null;
 
-        public List<string> ExtensionIds => this.YamlExtensionIds ?? this.Defaults.ExtensionIds;
+        // YAML Extension
+        [YamlMember(Alias = "extensions")]
+        public object? YamlExtensionsConfiguration { get; set; }
+
+        public List<string> ExtensionIds
+        {
+            get
+            {
+                var result = new List<string>();
+
+                if (!(this.YamlExtensionsConfiguration is List<object> extensions))
+                {
+                    return result;
+                }
+
+                foreach (var item in extensions)
+                {
+                    if (!(item is Dictionary<object, object> dict))
+                    {
+                        continue;
+                    }
+
+                    var id = (string)dict["id"];
+                    result.Add(id);
+                }
+
+                return result;
+            }
+        }
 
         public string BaseName => this.Defaults.BaseName;
 
