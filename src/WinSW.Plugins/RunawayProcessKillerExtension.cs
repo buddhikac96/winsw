@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.Diagnostics;
@@ -198,13 +198,18 @@ namespace WinSW.Plugins
         {
             var dict = config.GetSettings();
 
-            this.Pidfile = (string)dict["pidfile"];
-            this.StopTimeout = TimeSpan.FromMilliseconds(int.Parse((string)dict["stopTimeOut"]));
-            this.StopParentProcessFirst = bool.Parse((string)dict["StopParentFirst"]);
+            this.Pidfile = ConfigHelper.ExpandEnv((string)dict["pidfile"]);
+
+            var stopTimeOutConfig = ConfigHelper.ExpandEnv((string)dict["stopTimeOut"]);
+            this.StopTimeout = TimeSpan.FromMilliseconds(int.Parse(stopTimeOutConfig));
+
+            var StopParentProcessFirstConfig = ConfigHelper.ExpandEnv((string)dict["StopParentFirst"]);
+            this.StopParentProcessFirst = bool.Parse(StopParentProcessFirstConfig);
 
             try
             {
-                this.CheckWinSWEnvironmentVariable = bool.Parse((string)dict["checkWinSWEnvironmentVariable"]);
+                var CheckWinSWEnvironmentVariableConfig = ConfigHelper.ExpandEnv((string)dict["checkWinSWEnvironmentVariable"]);
+                this.CheckWinSWEnvironmentVariable = bool.Parse(CheckWinSWEnvironmentVariableConfig);
             }
             catch
             {

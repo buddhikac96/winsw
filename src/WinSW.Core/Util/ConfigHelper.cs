@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 
 namespace WinSW.Util
@@ -44,6 +44,11 @@ namespace WinSW.Util
             }
 
             return false;
+        }
+
+        public static string ExpandEnv(string str)
+        {
+            return Environment.ExpandEnvironmentVariables(str);
         }
     }
 }
