@@ -178,7 +178,7 @@ namespace WinSW.Configuration
                 {
                     return this.NameYamlLog is null ?
                         DefaultWinSWSettings.DefaultLogSettings.Name :
-                        ExpandEnv(this.NameYamlLog);
+                        ConfigHelper.ExpandEnv(this.NameYamlLog);
                 }
             }
 
@@ -188,7 +188,7 @@ namespace WinSW.Configuration
                 {
                     return this.LogPathYamlLog is null ?
                         DefaultWinSWSettings.DefaultLogSettings.Directory :
-                        ExpandEnv(this.LogPathYamlLog);
+                        ConfigHelper.ExpandEnv(this.LogPathYamlLog);
                 }
             }
 
@@ -253,7 +253,7 @@ namespace WinSW.Configuration
                 {
                     return this.OutFilePatternYamlLog is null ?
                         DefaultWinSWSettings.DefaultLogSettings.OutFilePattern :
-                        ExpandEnv(this.OutFilePatternYamlLog);
+                        ConfigHelper.ExpandEnv(this.OutFilePatternYamlLog);
                 }
             }
 
@@ -263,7 +263,7 @@ namespace WinSW.Configuration
                 {
                     return this.ErrFilePatternYamlLog is null ?
                         DefaultWinSWSettings.DefaultLogSettings.ErrFilePattern :
-                        ExpandEnv(this.ErrFilePatternYamlLog);
+                        ConfigHelper.ExpandEnv(this.ErrFilePatternYamlLog);
                 }
             }
 
@@ -337,15 +337,15 @@ namespace WinSW.Configuration
             [YamlMember(Alias = "proxy")]
             public string? ProxyYamlDownload { get; set; }
 
-            public string FromDownload => ExpandEnv(this.FromYamlDownload);
+            public string FromDownload => ConfigHelper.ExpandEnv(this.FromYamlDownload);
 
-            public string ToDownload => ExpandEnv(this.ToYamlDownload);
+            public string ToDownload => ConfigHelper.ExpandEnv(this.ToYamlDownload);
 
-            public string? UsernameDownload => this.UsernameYamlDownload is null ? null : ExpandEnv(this.UsernameYamlDownload);
+            public string? UsernameDownload => this.UsernameYamlDownload is null ? null : ConfigHelper.ExpandEnv(this.UsernameYamlDownload);
 
-            public string? PasswordDownload => this.PasswordYamlDownload is null ? null : ExpandEnv(this.PasswordYamlDownload);
+            public string? PasswordDownload => this.PasswordYamlDownload is null ? null : ConfigHelper.ExpandEnv(this.PasswordYamlDownload);
 
-            public string? ProxyDownload => this.ProxyYamlDownload is null ? null : ExpandEnv(this.ProxyYamlDownload);
+            public string? ProxyDownload => this.ProxyYamlDownload is null ? null : ConfigHelper.ExpandEnv(this.ProxyYamlDownload);
 
             public AuthType AuthDownload
             {
@@ -356,7 +356,7 @@ namespace WinSW.Configuration
                         return AuthType.None;
                     }
 
-                    var auth = ExpandEnv(this.AuthYamlDownload);
+                    var auth = ConfigHelper.ExpandEnv(this.AuthYamlDownload);
 
                     try
                     {
@@ -420,7 +420,7 @@ namespace WinSW.Configuration
                 }
             }
 
-            return ExpandEnv(args);
+            return ConfigHelper.ExpandEnv(args);
         }
 
         private enum ArgType
@@ -455,22 +455,17 @@ namespace WinSW.Configuration
             return result;
         }
 
-        internal static string ExpandEnv(string str)
-        {
-            return Environment.ExpandEnvironmentVariables(str);
-        }
+        public string Id => this.IdYaml is null ? this.Defaults.Id : ConfigHelper.ExpandEnv(this.IdYaml);
 
-        public string Id => this.IdYaml is null ? this.Defaults.Id : ExpandEnv(this.IdYaml);
+        public string Description => this.DescriptionYaml is null ? this.Defaults.Description : ConfigHelper.ExpandEnv(this.DescriptionYaml);
 
-        public string Description => this.DescriptionYaml is null ? this.Defaults.Description : ExpandEnv(this.DescriptionYaml);
-
-        public string Executable => this.ExecutableYaml is null ? this.Defaults.Executable : ExpandEnv(this.ExecutableYaml);
+        public string Executable => this.ExecutableYaml is null ? this.Defaults.Executable : ConfigHelper.ExpandEnv(this.ExecutableYaml);
 
         public string ExecutablePath => this.ExecutablePathYaml is null ?
             this.Defaults.ExecutablePath :
-            ExpandEnv(this.ExecutablePathYaml);
+            ConfigHelper.ExpandEnv(this.ExecutablePathYaml);
 
-        public string Caption => this.NameYaml is null ? this.Defaults.Caption : ExpandEnv(this.NameYaml);
+        public string Caption => this.NameYaml is null ? this.Defaults.Caption : ConfigHelper.ExpandEnv(this.NameYaml);
 
         public bool HideWindow => this.HideWindowYaml is null ? this.Defaults.HideWindow : (bool)this.HideWindowYaml;
 
@@ -493,7 +488,7 @@ namespace WinSW.Configuration
                     return this.Defaults.StartMode;
                 }
 
-                var p = ExpandEnv(this.StartModeYaml);
+                var p = ConfigHelper.ExpandEnv(this.StartModeYaml);
 
                 try
                 {
@@ -531,7 +526,7 @@ namespace WinSW.Configuration
             {
                 return this.StopExecutableYaml is null ?
                     this.Defaults.StopExecutable :
-                    ExpandEnv(this.StopExecutableYaml);
+                    ConfigHelper.ExpandEnv(this.StopExecutableYaml);
             }
         }
 
@@ -561,7 +556,7 @@ namespace WinSW.Configuration
 
         public string WorkingDirectory => this.WorkingDirectoryYaml is null ?
             this.Defaults.WorkingDirectory :
-            ExpandEnv(this.WorkingDirectoryYaml);
+            ConfigHelper.ExpandEnv(this.WorkingDirectoryYaml);
 
         public ProcessPriorityClass Priority
         {
@@ -572,7 +567,7 @@ namespace WinSW.Configuration
                     return this.Defaults.Priority;
                 }
 
-                var p = ExpandEnv(this.PriorityYaml);
+                var p = ConfigHelper.ExpandEnv(this.PriorityYaml);
 
                 try
                 {
@@ -606,7 +601,7 @@ namespace WinSW.Configuration
 
                 foreach (var item in this.ServiceDependenciesYaml)
                 {
-                    result.Add(ExpandEnv(item));
+                    result.Add(ConfigHelper.ExpandEnv(item));
                 }
 
                 return result.ToArray();
@@ -639,7 +634,7 @@ namespace WinSW.Configuration
                     }
 
                     var key = item.Name;
-                    var value = ExpandEnv(item.Value);
+                    var value = ConfigHelper.ExpandEnv(item.Value);
 
                     this.EnvironmentVariables[key] = value;
                     Environment.SetEnvironmentVariable(key, value);
@@ -705,7 +700,7 @@ namespace WinSW.Configuration
                     return this.Defaults.SecurityDescriptor;
                 }
 
-                return ExpandEnv(this.SecurityDescriptorYaml);
+                return ConfigHelper.ExpandEnv(this.SecurityDescriptorYaml);
             }
         }
     }
