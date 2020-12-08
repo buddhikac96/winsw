@@ -21,7 +21,7 @@
   <ItemGroup Condition="'$(TargetFramework)' == 'netcoreapp3.1'">
     <PackageReference Include="System.Diagnostics.EventLog" Version="4.7.0" />
     <PackageReference Include="System.Management" Version="4.7.0" />
-    <PackageReference Include="System.Security.AccessControl" Version="4.7.0" />
+    <PackageReference Include="System.Security.AccessControl" Version="5.0.0" />
   </ItemGroup>
 
   <!-- error NU1605: Detected package downgrade: log4net 2.0.8 -->
